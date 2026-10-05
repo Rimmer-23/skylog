@@ -1,0 +1,23 @@
+# Secrets
+.env
+
+# Private roadmap
+pipeline-plan.md
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Logs
+*.log
+
+# Server keys
+*.pem
