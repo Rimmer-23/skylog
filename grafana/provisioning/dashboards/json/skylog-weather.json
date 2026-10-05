@@ -1,0 +1,143 @@
+{
+  "uid": "skylog-weather",
+  "title": "Skylog — Weather",
+  "tags": ["skylog", "weather"],
+  "timezone": "utc",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "5m",
+  "time": { "from": "now-7d", "to": "now/d" },
+  "templating": {
+    "list": [
+      {
+        "name": "location",
+        "label": "Location",
+        "type": "query",
+        "datasource": { "type": "postgres", "uid": "postgres" },
+        "query": "SELECT DISTINCT location FROM silver.weather ORDER BY 1",
+        "refresh": 1,
+        "includeAll": false,
+        "multi": false
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Температура (silver)",
+      "datasource": { "type": "postgres", "uid": "postgres" },
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 0 },
+      "fieldConfig": {
+        "defaults": { "unit": "celsius", "custom": { "lineWidth": 2, "fillOpacity": 10 } },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "apparent_temp_c" },
+            "properties": [
+              { "id": "displayName", "value": "Ощущается" },
+              { "id": "custom.lineStyle", "value": { "fill": "dash", "dash": [10, 10] } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "temperature_c" },
+            "properties": [{ "id": "displayName", "value": "Температура" }]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "postgres" },
+          "format": "time_series",
+          "rawQuery": true,
+          "editorMode": "code",
+          "rawSql": "SELECT measured_at AS time, temperature_c, apparent_temp_c FROM silver.weather WHERE location = '$location' AND $__timeFilter(measured_at) ORDER BY 1"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Мин / среднее / макс по дням (gold)",
+      "datasource": { "type": "postgres", "uid": "postgres" },
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 0 },
+      "fieldConfig": {
+        "defaults": { "unit": "celsius", "custom": { "lineWidth": 2, "drawStyle": "line", "showPoints": "always", "pointSize": 6 } },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "temp_min_c" }, "properties": [{ "id": "displayName", "value": "Мин" }, { "id": "color", "value": { "mode": "fixed", "fixedColor": "blue" } }] },
+          { "matcher": { "id": "byName", "options": "temp_avg_c" }, "properties": [{ "id": "displayName", "value": "Среднее" }, { "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }] },
+          { "matcher": { "id": "byName", "options": "temp_max_c" }, "properties": [{ "id": "displayName", "value": "Макс" }, { "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }] }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "postgres" },
+          "format": "time_series",
+          "rawQuery": true,
+          "editorMode": "code",
+          "rawSql": "SELECT date::timestamp AS time, temp_min_c, temp_avg_c, temp_max_c FROM gold.weather_daily WHERE location = '$location' AND $__timeFilter(date::timestamp) ORDER BY 1"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Осадки по дням (gold)",
+      "datasource": { "type": "postgres", "uid": "postgres" },
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 9 },
+      "options": { "legend": { "showLegend": false } },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "lengthmm",
+          "min": 0,
+          "color": { "mode": "fixed", "fixedColor": "blue" },
+          "custom": {
+            "drawStyle": "bars",
+            "barAlignment": 0,
+            "fillOpacity": 80,
+            "lineWidth": 1,
+            "axisSoftMax": 5,
+            "axisSoftMin": 0
+          }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "precipitation_sum_mm" }, "properties": [{ "id": "displayName", "value": "Осадки" }] }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "postgres" },
+          "format": "time_series",
+          "rawQuery": true,
+          "editorMode": "code",
+          "rawSql": "SELECT date::timestamp AS time, precipitation_sum_mm FROM gold.weather_daily WHERE location = '$location' AND $__timeFilter(date::timestamp) ORDER BY 1"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Скорость ветра (silver)",
+      "datasource": { "type": "postgres", "uid": "postgres" },
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 9 },
+      "fieldConfig": {
+        "defaults": { "unit": "velocitykmh", "custom": { "lineWidth": 2, "fillOpacity": 10 } },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "wind_speed_kmh" }, "properties": [{ "id": "displayName", "value": "Ветер" }] }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "postgres" },
+          "format": "time_series",
+          "rawQuery": true,
+          "editorMode": "code",
+          "rawSql": "SELECT measured_at AS time, wind_speed_kmh FROM silver.weather WHERE location = '$location' AND $__timeFilter(measured_at) ORDER BY 1"
+        }
+      ]
+    }
+  ]
+}
