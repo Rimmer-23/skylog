@@ -1,0 +1,6 @@
+# Продакшен-оверрайд: на сервере (1 GB RAM) образ pipeline не собирается, а тянется из Docker Hub.
+# Запуск: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+services:
+  pipeline:
+    build: !reset null
+    image: ${DOCKERHUB_USERNAME}/skylog-pipeline:latest
