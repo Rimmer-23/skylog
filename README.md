@@ -1,6 +1,6 @@
 # skylog
 
-An end-to-end data pipeline that collects hourly weather data from the [Open-Meteo API](https://open-meteo.com/), models it with a **medallion architecture** (bronze → silver → gold) in PostgreSQL, and visualizes it in Grafana. Fully containerized, deployed to AWS EC2 with CI/CD, and backed up nightly to S3 — running on free-tier resources.
+An end-to-end data pipeline that collects hourly weather data for Prague, Kyiv and Miami from the [Open-Meteo API](https://open-meteo.com/), models it with a **medallion architecture** (bronze → silver → gold) in PostgreSQL, and visualizes it in Grafana. Fully containerized, deployed to AWS EC2 with CI/CD, and backed up nightly to S3 — running on free-tier resources.
 
 ![Grafana dashboard](docs/dashboard.png)
 
@@ -27,10 +27,10 @@ flowchart LR
 ## Tech stack
 
 - **Python 3.12** (`requests`, `psycopg2`), scheduled with **cron** inside the container
-- **PostgreSQL 16**, **Grafana OSS 11** (datasource and dashboard provisioned as code)
+- **PostgreSQL 16**, **Grafana OSS 13** (datasource and dashboard provisioned as code)
 - **Docker Compose** — three services with healthchecks and restart policies
 - **GitHub Actions** — builds the image, pushes it to Docker Hub, deploys over SSH
-- **AWS** — EC2 (t2.micro, 1 GB RAM + swap), S3 for backups, IAM role instead of stored credentials
+- **AWS** — EC2 (t2.micro, 1 GB RAM + swap), S3 for backups
 
 ## Engineering decisions
 
@@ -41,10 +41,10 @@ flowchart LR
 - **Failure isolation.** One city failing doesn't stop the others; the run still exits with an error so it is visible in the logs.
 - **Production-aware Docker setup.** `depends_on` with `service_healthy`, cron environment explicitly exported (cron doesn't inherit container env), logs routed to `docker compose logs`.
 - **Small-server tuning.** PostgreSQL `shared_buffers`/`work_mem` capped, 1 GB swap added, and the image is built in CI instead of on the 1 GB server (a prod compose override swaps `build` for `image`).
-- **Backups.** Nightly `pg_dump | gzip` to S3 via cron, 30-day lifecycle rule, access through an EC2 IAM role scoped to a single bucket. Restore was verified by reading the dump back.
-- **Least privilege.** Grafana connects as a dedicated `grafana_ro` role (read-only, no access to raw bronze payloads), not as the database owner. The EC2 instance reaches S3 through an IAM role scoped to one bucket.
+- **Backups.** Nightly `pg_dump | gzip` to S3 via cron with a 30-day lifecycle rule. A dump was verified by reading it back from S3 (all three schemas and their data present).
+- **Least privilege.** Grafana connects as a dedicated `grafana_ro` role (read-only, no access to raw bronze payloads), not as the database owner. The EC2 instance reaches S3 through an IAM role scoped to a single bucket, so no AWS keys are stored on the server.
 - **Secrets stay out of git.** `.env` is ignored; CI uses GitHub Secrets; the server pulls code through a read-only deploy key.
-- **Supply-chain hygiene.** GitHub Actions are pinned to commit SHAs with read-only workflow permissions, and Dependabot tracks Actions, Docker images and Python dependencies.
+- **Supply-chain hygiene.** GitHub Actions are pinned to commit SHAs with read-only workflow permissions, and Dependabot tracks Actions, Docker images and Python dependencies. PostgreSQL major upgrades are excluded from auto-bumps because they need a dump/restore, not an image swap.
 
 ## Run locally
 
@@ -88,7 +88,7 @@ Pushing to `main` triggers `.github/workflows/deploy.yml`:
 ├── grafana/provisioning/       # datasource + dashboard as code
 ├── scripts/backup.sh           # nightly dump to S3
 ├── scripts/create-grafana-ro.sh  # idempotent read-only DB role for Grafana
-└── .github/workflows/deploy.yml
+└── .github/                    # deploy workflow + Dependabot config
 ```
 
 ## Roadmap
