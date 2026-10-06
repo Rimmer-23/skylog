@@ -14,6 +14,11 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    ignore:
+      # A PostgreSQL major upgrade cannot reuse the existing data volume:
+      # it needs pg_dump/pg_restore (or pg_upgrade), so never auto-bump it.
+      - dependency-name: postgres
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: pip             # pipeline/requirements.txt
     directory: /pipeline

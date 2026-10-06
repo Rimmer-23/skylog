@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:18-alpine
+    image: postgres:16-alpine   # do not bump the major: needs a dump/restore, not an image swap
     container_name: postgres
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
