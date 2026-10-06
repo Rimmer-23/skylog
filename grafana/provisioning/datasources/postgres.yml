@@ -5,9 +5,9 @@ datasources:
     type: postgres
     access: proxy
     url: postgres:5432
-    user: ${POSTGRES_USER}
+    user: grafana_ro          # read-only role, created by scripts/create-grafana-ro.sh
     secureJsonData:
-      password: ${POSTGRES_PASSWORD}
+      password: ${GRAFANA_DB_PASSWORD}
     jsonData:
       database: ${POSTGRES_DB}
       sslmode: disable

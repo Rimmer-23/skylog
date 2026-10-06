@@ -42,15 +42,18 @@ flowchart LR
 - **Production-aware Docker setup.** `depends_on` with `service_healthy`, cron environment explicitly exported (cron doesn't inherit container env), logs routed to `docker compose logs`.
 - **Small-server tuning.** PostgreSQL `shared_buffers`/`work_mem` capped, 1 GB swap added, and the image is built in CI instead of on the 1 GB server (a prod compose override swaps `build` for `image`).
 - **Backups.** Nightly `pg_dump | gzip` to S3 via cron, 30-day lifecycle rule, access through an EC2 IAM role scoped to a single bucket. Restore was verified by reading the dump back.
+- **Least privilege.** Grafana connects as a dedicated `grafana_ro` role (read-only, no access to raw bronze payloads), not as the database owner. The EC2 instance reaches S3 through an IAM role scoped to one bucket.
 - **Secrets stay out of git.** `.env` is ignored; CI uses GitHub Secrets; the server pulls code through a read-only deploy key.
+- **Supply-chain hygiene.** GitHub Actions are pinned to commit SHAs with read-only workflow permissions, and Dependabot tracks Actions, Docker images and Python dependencies.
 
 ## Run locally
 
 Requires Docker with Compose.
 
 ```bash
-cp .env.example .env     # fill in the values (avoid @ : / # % in POSTGRES_PASSWORD)
+cp .env.example .env     # fill in the values (avoid @ : / # % in passwords)
 docker compose up -d --build
+bash scripts/create-grafana-ro.sh   # creates the read-only role Grafana uses
 docker compose logs -f pipeline
 ```
 
@@ -65,7 +68,7 @@ The pipeline runs once on start and then hourly. To add a city, append it to [`p
 Pushing to `main` triggers `.github/workflows/deploy.yml`:
 
 1. **build** — builds `pipeline/` for `linux/amd64` and pushes it to Docker Hub.
-2. **deploy** — SSHs into the EC2 host, runs `git pull`, `docker compose pull`, and `up -d` with `docker-compose.prod.yml`.
+2. **deploy** — SSHs into the EC2 host, runs `git pull`, `docker compose pull`, `up -d` with `docker-compose.prod.yml`, then re-applies the read-only Grafana role (idempotent).
 
 ## Repository layout
 
@@ -84,6 +87,7 @@ Pushing to `main` triggers `.github/workflows/deploy.yml`:
 ├── sql/init.sql                # bronze / silver / gold schemas
 ├── grafana/provisioning/       # datasource + dashboard as code
 ├── scripts/backup.sh           # nightly dump to S3
+├── scripts/create-grafana-ro.sh  # idempotent read-only DB role for Grafana
 └── .github/workflows/deploy.yml
 ```
 

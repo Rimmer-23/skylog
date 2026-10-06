@@ -1,0 +1,21 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: docker          # pipeline/Dockerfile base image
+    directory: /pipeline
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: docker-compose  # postgres / grafana image tags
+    directory: /
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: pip             # pipeline/requirements.txt
+    directory: /pipeline
+    schedule:
+      interval: weekly
