@@ -2,7 +2,7 @@ CREATE SCHEMA bronze;
 CREATE SCHEMA silver;
 CREATE SCHEMA gold;
 
--- BRONZE: сырые данные как пришли из API
+-- BRONZE: raw data exactly as returned by the API
 CREATE TABLE bronze.weather_raw (
     id          SERIAL PRIMARY KEY,
     fetched_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -12,7 +12,7 @@ CREATE TABLE bronze.weather_raw (
     raw_data    JSONB NOT NULL
 );
 
--- SILVER: очищенные, типизированные записи (одна строка = один час)
+-- SILVER: cleaned, typed records (one row = one hour)
 CREATE TABLE silver.weather (
     id                  SERIAL PRIMARY KEY,
     bronze_id           INT REFERENCES bronze.weather_raw(id),
@@ -30,7 +30,7 @@ CREATE TABLE silver.weather (
     UNIQUE (location, measured_at)
 );
 
--- GOLD: дневные агрегаты
+-- GOLD: daily aggregates
 CREATE TABLE gold.weather_daily (
     id                   SERIAL PRIMARY KEY,
     location             TEXT NOT NULL,
@@ -46,7 +46,7 @@ CREATE TABLE gold.weather_daily (
     UNIQUE (location, date)
 );
 
--- Индексы для Grafana запросов и алертов
+-- Indexes for Grafana queries and alerts
 CREATE INDEX ON bronze.weather_raw (fetched_at DESC);
 CREATE INDEX ON silver.weather (location, measured_at DESC);
 CREATE INDEX ON gold.weather_daily (location, date DESC);

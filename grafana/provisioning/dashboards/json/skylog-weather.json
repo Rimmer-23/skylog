@@ -25,7 +25,7 @@
     {
       "id": 1,
       "type": "timeseries",
-      "title": "Температура (silver)",
+      "title": "Temperature (silver)",
       "datasource": { "type": "postgres", "uid": "postgres" },
       "gridPos": { "h": 9, "w": 12, "x": 0, "y": 0 },
       "fieldConfig": {
@@ -34,13 +34,13 @@
           {
             "matcher": { "id": "byName", "options": "apparent_temp_c" },
             "properties": [
-              { "id": "displayName", "value": "Ощущается" },
+              { "id": "displayName", "value": "Feels like" },
               { "id": "custom.lineStyle", "value": { "fill": "dash", "dash": [10, 10] } }
             ]
           },
           {
             "matcher": { "id": "byName", "options": "temperature_c" },
-            "properties": [{ "id": "displayName", "value": "Температура" }]
+            "properties": [{ "id": "displayName", "value": "Temperature" }]
           }
         ]
       },
@@ -58,15 +58,15 @@
     {
       "id": 2,
       "type": "timeseries",
-      "title": "Мин / среднее / макс по дням (gold)",
+      "title": "Daily min / avg / max (gold)",
       "datasource": { "type": "postgres", "uid": "postgres" },
       "gridPos": { "h": 9, "w": 12, "x": 12, "y": 0 },
       "fieldConfig": {
         "defaults": { "unit": "celsius", "custom": { "lineWidth": 2, "drawStyle": "line", "showPoints": "always", "pointSize": 6 } },
         "overrides": [
-          { "matcher": { "id": "byName", "options": "temp_min_c" }, "properties": [{ "id": "displayName", "value": "Мин" }, { "id": "color", "value": { "mode": "fixed", "fixedColor": "blue" } }] },
-          { "matcher": { "id": "byName", "options": "temp_avg_c" }, "properties": [{ "id": "displayName", "value": "Среднее" }, { "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }] },
-          { "matcher": { "id": "byName", "options": "temp_max_c" }, "properties": [{ "id": "displayName", "value": "Макс" }, { "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }] }
+          { "matcher": { "id": "byName", "options": "temp_min_c" }, "properties": [{ "id": "displayName", "value": "Min" }, { "id": "color", "value": { "mode": "fixed", "fixedColor": "blue" } }] },
+          { "matcher": { "id": "byName", "options": "temp_avg_c" }, "properties": [{ "id": "displayName", "value": "Avg" }, { "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }] },
+          { "matcher": { "id": "byName", "options": "temp_max_c" }, "properties": [{ "id": "displayName", "value": "Max" }, { "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }] }
         ]
       },
       "targets": [
@@ -83,7 +83,7 @@
     {
       "id": 3,
       "type": "timeseries",
-      "title": "Осадки по дням (gold)",
+      "title": "Daily precipitation (gold)",
       "datasource": { "type": "postgres", "uid": "postgres" },
       "gridPos": { "h": 9, "w": 12, "x": 0, "y": 9 },
       "options": { "legend": { "showLegend": false } },
@@ -102,7 +102,7 @@
           }
         },
         "overrides": [
-          { "matcher": { "id": "byName", "options": "precipitation_sum_mm" }, "properties": [{ "id": "displayName", "value": "Осадки" }] }
+          { "matcher": { "id": "byName", "options": "precipitation_sum_mm" }, "properties": [{ "id": "displayName", "value": "Precipitation" }] }
         ]
       },
       "targets": [
@@ -119,13 +119,13 @@
     {
       "id": 4,
       "type": "timeseries",
-      "title": "Скорость ветра (silver)",
+      "title": "Wind speed (silver)",
       "datasource": { "type": "postgres", "uid": "postgres" },
       "gridPos": { "h": 9, "w": 12, "x": 12, "y": 9 },
       "fieldConfig": {
         "defaults": { "unit": "velocitykmh", "custom": { "lineWidth": 2, "fillOpacity": 10 } },
         "overrides": [
-          { "matcher": { "id": "byName", "options": "wind_speed_kmh" }, "properties": [{ "id": "displayName", "value": "Ветер" }] }
+          { "matcher": { "id": "byName", "options": "wind_speed_kmh" }, "properties": [{ "id": "displayName", "value": "Wind" }] }
         ]
       },
       "targets": [

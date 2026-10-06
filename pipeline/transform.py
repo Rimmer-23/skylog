@@ -2,7 +2,7 @@ from db import get_conn
 
 
 def transform(bronze_id: int):
-    """SILVER: разбирает bronze-запись в типизированные часовые строки."""
+    """SILVER: parse a bronze record into typed hourly rows."""
     with get_conn() as conn, conn.cursor() as cur:
         cur.execute('SELECT location, raw_data FROM bronze.weather_raw WHERE id = %s', (bronze_id,))
         location, raw = cur.fetchone()
@@ -13,9 +13,9 @@ def transform(bronze_id: int):
             h['wind_speed_10m'], h['wind_direction_10m'], h['weather_code'],
         )
         for time, temp, feels, humidity, precip, wind_spd, wind_dir, code in rows:
-            if temp is None:   # час без данных — пропускаем
+            if temp is None:   # hour with no data: skip
                 continue
-            # DO UPDATE: прогноз на час уточняется при следующих запусках
+            # DO UPDATE: the forecast for an hour is refined by later runs
             cur.execute(
                 """INSERT INTO silver.weather
                    (bronze_id, location, measured_at, temperature_c, apparent_temp_c,

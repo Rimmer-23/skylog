@@ -10,14 +10,14 @@ HOURLY = ('temperature_2m,apparent_temperature,relative_humidity_2m,'
 
 
 def extract(location: str, latitude: float, longitude: float) -> int:
-    """BRONZE: сохраняет ответ API как есть, возвращает id записи."""
+    """BRONZE: store the API response as-is, return the record id."""
     params = {
         'latitude': latitude,
         'longitude': longitude,
         'hourly': HOURLY,
-        'past_days': 1,       # вчера + сегодня: закрывает пропущенные запуски
+        'past_days': 1,       # yesterday + today: covers missed runs
         'forecast_days': 1,
-        'timezone': 'UTC',    # иначе время приходит локальным и без смещения
+        'timezone': 'UTC',    # otherwise times arrive in local time with no offset
     }
     resp = requests.get(API_URL, params=params, timeout=10)
     resp.raise_for_status()

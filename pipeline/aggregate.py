@@ -2,7 +2,7 @@ from db import get_conn
 
 
 def aggregate():
-    """GOLD: пересчитывает дневные агрегаты за последние 3 дня (UTC)."""
+    """GOLD: recompute daily aggregates for the last 3 days (UTC)."""
     with get_conn() as conn, conn.cursor() as cur:
         cur.execute("""
             INSERT INTO gold.weather_daily

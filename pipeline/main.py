@@ -11,7 +11,7 @@ log = logging.getLogger(__name__)
 if __name__ == '__main__':
     log.info('=== Pipeline start ===')
     failed = []
-    # Сбой одного города не должен останавливать остальные
+    # A failure in one city must not stop the others
     for name, lat, lon in LOCATIONS:
         try:
             bronze_id = extract(name, lat, lon)

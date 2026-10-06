@@ -1,5 +1,5 @@
-# Продакшен-оверрайд: на сервере (1 GB RAM) образ pipeline не собирается, а тянется из Docker Hub.
-# Запуск: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# Production override: on the server (1 GB RAM) the pipeline image is pulled from Docker Hub, not built.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 services:
   pipeline:
     build: !reset null

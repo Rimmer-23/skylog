@@ -1,6 +1,6 @@
 #!/bin/bash
-# Ежедневный дамп PostgreSQL в S3. Запускается из cron на сервере.
-# В cron нет переменных из .env, поэтому подгружаем их сами.
+# Daily PostgreSQL dump to S3. Run from cron on the server.
+# cron has no variables from .env, so load them here.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
