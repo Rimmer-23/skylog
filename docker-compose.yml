@@ -41,9 +41,6 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres/${POSTGRES_DB}
-      LOCATION: ${LOCATION}
-      LATITUDE: ${LATITUDE}
-      LONGITUDE: ${LONGITUDE}
     restart: unless-stopped
 
 volumes:
