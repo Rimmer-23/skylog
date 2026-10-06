@@ -37,6 +37,7 @@ flowchart LR
 - **Idempotent runs.** Silver and gold use `INSERT ... ON CONFLICT DO UPDATE`, so re-running never duplicates data and forecast hours get refined by later runs.
 - **Self-healing backfill.** Each run requests yesterday + today (`past_days=1`), so a missed run doesn't leave a gap, and gold re-aggregates the last 3 days.
 - **UTC everywhere.** The API is queried with `timezone=UTC` and the DB session is pinned to UTC, avoiding the classic local-time-stored-as-UTC shift.
+- **Resilient API calls.** Timeouts, connection errors and transient 5xx/429 responses are retried with exponential backoff (2 s, 4 s, 8 s); permanent errors such as 404 fail immediately.
 - **Failure isolation.** One city failing doesn't stop the others; the run still exits with an error so it is visible in the logs.
 - **Production-aware Docker setup.** `depends_on` with `service_healthy`, cron environment explicitly exported (cron doesn't inherit container env), logs routed to `docker compose logs`.
 - **Small-server tuning.** PostgreSQL `shared_buffers`/`work_mem` capped, 1 GB swap added, and the image is built in CI instead of on the 1 GB server (a prod compose override swaps `build` for `image`).
