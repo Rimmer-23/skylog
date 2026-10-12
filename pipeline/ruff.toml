@@ -1,0 +1,9 @@
+target-version = "py312"
+line-length = 120
+
+[lint]
+# pycodestyle, pyflakes, bugbear, pyupgrade, logging-format, isort
+select = ["E", "F", "W", "B", "UP", "G", "I"]
+
+[lint.isort]
+known-first-party = ["aggregate", "db", "extract", "locations", "transform"]

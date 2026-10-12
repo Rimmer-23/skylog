@@ -7,9 +7,22 @@ on:
 permissions:
   contents: read
 
+# Never run two deploys against the server at once; a newer push waits for the current one
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
 # Third-party actions are pinned to commit SHAs; Dependabot keeps them updated
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Ruff
+        run: pipx run --spec ruff==0.17.0 ruff check pipeline
+
   build:
+    needs: lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -22,7 +35,10 @@ jobs:
           context: ./pipeline
           platforms: linux/amd64
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/skylog-pipeline:latest
+          # :latest is what the server pulls; the commit tag allows pinning a known-good image to roll back
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/skylog-pipeline:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/skylog-pipeline:${{ github.sha }}
 
   deploy:
     needs: build

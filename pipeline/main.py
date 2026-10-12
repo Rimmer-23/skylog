@@ -15,17 +15,17 @@ if __name__ == '__main__':
     for name, lat, lon in LOCATIONS:
         try:
             bronze_id = extract(name, lat, lon)
-            transform(bronze_id)
-            log.info(f'{name}: bronze id={bronze_id}, silver done')
-        except Exception as e:
-            log.error(f'{name}: failed: {e}', exc_info=True)
+            hours = transform(bronze_id)
+            log.info('%s: bronze id=%s, silver rows=%s', name, bronze_id, hours)
+        except Exception:
+            log.exception('%s: failed', name)
             failed.append(name)
 
     try:
         aggregate()
         log.info('Gold: aggregates updated')
-    except Exception as e:
-        log.error(f'Gold failed: {e}', exc_info=True)
+    except Exception:
+        log.exception('Gold failed')
         failed.append('gold')
 
     if failed:

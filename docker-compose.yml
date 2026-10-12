@@ -1,3 +1,10 @@
+# Cap container logs: the default json-file driver grows without limit on the small server's disk
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: "3"
+
 services:
   postgres:
     image: postgres:16-alpine   # do not bump the major: needs a dump/restore, not an image swap
@@ -16,6 +23,7 @@ services:
       timeout: 5s
       retries: 10
     restart: unless-stopped
+    logging: *logging
 
   grafana:
     image: grafana/grafana-oss:13.0.2
@@ -32,6 +40,7 @@ services:
       postgres:
         condition: service_healthy
     restart: unless-stopped
+    logging: *logging
 
   pipeline:
     build: ./pipeline
@@ -41,6 +50,7 @@ services:
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres/${POSTGRES_DB}
     restart: unless-stopped
+    logging: *logging
 
 volumes:
   pgdata: {}

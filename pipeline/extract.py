@@ -30,8 +30,8 @@ def fetch(params: dict) -> dict:
             if not retryable or attempt == ATTEMPTS:
                 raise
             delay = BASE_DELAY * 2 ** (attempt - 1)
-            log.warning(f'API request failed ({e.__class__.__name__}), '
-                        f'retry {attempt}/{ATTEMPTS - 1} in {delay}s')
+            log.warning('API request failed (%s), retry %s/%s in %ss',
+                        e.__class__.__name__, attempt, ATTEMPTS - 1, delay)
             time.sleep(delay)
 
 

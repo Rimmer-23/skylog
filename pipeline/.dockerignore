@@ -1,0 +1,8 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.cron_env
+Dockerfile
+.dockerignore
+ruff.toml

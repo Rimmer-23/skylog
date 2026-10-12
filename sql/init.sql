@@ -46,7 +46,6 @@ CREATE TABLE gold.weather_daily (
     UNIQUE (location, date)
 );
 
--- Indexes for Grafana queries and alerts
+-- Index for the "no new data" alert. Grafana queries on silver/gold are already
+-- served by the UNIQUE (location, ...) indexes, which Postgres can scan in either direction.
 CREATE INDEX ON bronze.weather_raw (fetched_at DESC);
-CREATE INDEX ON silver.weather (location, measured_at DESC);
-CREATE INDEX ON gold.weather_daily (location, date DESC);

@@ -29,7 +29,7 @@ flowchart LR
 - **Python 3.12** (`requests`, `psycopg2`), scheduled with **cron** inside the container
 - **PostgreSQL 16**, **Grafana OSS 13** (datasource and dashboard provisioned as code)
 - **Docker Compose** — three services with healthchecks and restart policies
-- **GitHub Actions** — builds the image, pushes it to Docker Hub, deploys over SSH
+- **GitHub Actions** — lints with Ruff, builds the image, pushes it to Docker Hub, deploys over SSH
 - **AWS** — EC2 (t2.micro, 1 GB RAM + swap), S3 for backups
 
 ## Engineering decisions
@@ -39,12 +39,12 @@ flowchart LR
 - **UTC everywhere.** The API is queried with `timezone=UTC` and the DB session is pinned to UTC, avoiding the classic local-time-stored-as-UTC shift.
 - **Resilient API calls.** Timeouts, connection errors and transient 5xx/429 responses are retried with exponential backoff (2 s, 4 s, 8 s); permanent errors such as 404 fail immediately.
 - **Failure isolation.** One city failing doesn't stop the others; the run still exits with an error so it is visible in the logs.
-- **Production-aware Docker setup.** `depends_on` with `service_healthy`, cron environment explicitly exported (cron doesn't inherit container env), logs routed to `docker compose logs`.
+- **Production-aware Docker setup.** `depends_on` with `service_healthy`, cron environment explicitly exported (cron doesn't inherit container env), logs routed to `docker compose logs` and rotated (10 MB × 3 per container) so they can't fill the disk.
 - **Small-server tuning.** PostgreSQL `shared_buffers`/`work_mem` capped, 1 GB swap added, and the image is built in CI instead of on the 1 GB server (a prod compose override swaps `build` for `image`).
 - **Backups.** Nightly `pg_dump | gzip` to S3 via cron with a 30-day lifecycle rule. A dump was verified by reading it back from S3 (all three schemas and their data present).
 - **Least privilege.** Grafana connects as a dedicated `grafana_ro` role (read-only, no access to raw bronze payloads), not as the database owner. The EC2 instance reaches S3 through an IAM role scoped to a single bucket, so no AWS keys are stored on the server.
 - **Secrets stay out of git.** `.env` is ignored; CI uses GitHub Secrets; the server pulls code through a read-only deploy key.
-- **Supply-chain hygiene.** GitHub Actions are pinned to commit SHAs with read-only workflow permissions, and Dependabot tracks Actions, Docker images and Python dependencies. PostgreSQL major upgrades are excluded from auto-bumps because they need a dump/restore, not an image swap.
+- **Supply-chain hygiene.** GitHub Actions are pinned to commit SHAs with read-only workflow permissions, Python dependencies are pinned to exact versions, and Dependabot tracks Actions, Docker images and Python dependencies. PostgreSQL major upgrades are excluded from auto-bumps because they need a dump/restore, not an image swap.
 
 ## Run locally
 
@@ -65,10 +65,11 @@ The pipeline runs once on start and then hourly. To add a city, append it to [`p
 
 ## Deployment
 
-Pushing to `main` triggers `.github/workflows/deploy.yml`:
+Pushing to `main` triggers `.github/workflows/deploy.yml` (one run at a time):
 
-1. **build** — builds `pipeline/` for `linux/amd64` and pushes it to Docker Hub.
-2. **deploy** — SSHs into the EC2 host, runs `git pull`, `docker compose pull`, `up -d` with `docker-compose.prod.yml`, then re-applies the read-only Grafana role (idempotent).
+1. **lint** — `ruff check pipeline` (config in `pipeline/ruff.toml`); a failure stops the deploy.
+2. **build** — builds `pipeline/` for `linux/amd64` and pushes it to Docker Hub as `:latest` and `:<commit sha>`.
+3. **deploy** — SSHs into the EC2 host, runs `git pull`, `docker compose pull`, `up -d` with `docker-compose.prod.yml`, then re-applies the read-only Grafana role (idempotent).
 
 ## Repository layout
 
@@ -95,5 +96,5 @@ Pushing to `main` triggers `.github/workflows/deploy.yml`:
 
 - Alerting: Grafana alert when no new bronze rows for 2+ hours, uptime monitoring
 - Daily aggregates in each city's local time zone (currently UTC days)
-- Automated tests and a CI check before deploy
+- Automated tests in CI (lint already gates the deploy)
 - HTTPS and a custom domain for the dashboard
